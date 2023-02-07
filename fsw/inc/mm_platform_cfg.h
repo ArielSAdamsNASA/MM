@@ -89,7 +89,7 @@
  *       or dump is in progress.
  */
 #define MM_MAX_LOAD_FILE_DATA_EEPROM (128 * 1024)
-
+#ifndef CFE_EDS_ENABLED_BUILD
 /**
  * \brief Maximum number of bytes for an uninterruptable load
  *
@@ -110,7 +110,7 @@
  *       used.
  */
 #define MM_MAX_UNINTERRUPTIBLE_DATA 200
-
+#endif
 /**
  * \brief Maximum number of bytes per load data segment
  *
