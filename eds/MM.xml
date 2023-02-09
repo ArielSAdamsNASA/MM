@@ -1,0 +1,923 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    GSC-18128-1, "Core Flight Executive Version 6.7"
+    LEW-19710-1, "CCSDS electronic data sheet implementation"
+
+    Copyright (c) 2006-2019 United States Government as represented by
+    the Administrator of the National Aeronautics and Space Administration.
+    All Rights Reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+    This document adheres to the Electronic Data Sheet (EDS) XML schema
+    as prescribed in CCSDS book 876.0.
+
+    Purpose:
+      This describes all interface objects for the Executive Services (CFE_ES)
+      core application
+
+-->
+<PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
+  <Package name="MM" shortDescription="Memory Manager">
+
+    <DataTypeSet>
+
+      <EnumeratedDataType name="MemType_Payload" ShortDescription="FM free space table entry state definitions">
+          <EnumerationList>
+            <Enumeration label="NOMEMTYPE" value="0"  />
+            <Enumeration label="RAM" value="1"  />
+            <Enumeration label="EEPROM" value="2"  />
+            <Enumeration label="MEM8" value="3"  />
+            <Enumeration label="MEM16" value="4"  />
+            <Enumeration label="MEM32" value="5"  />
+          </EnumerationList>
+          <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+      </EnumeratedDataType>
+
+      <ContainerDataType name="SymAddr_Payload" shortDescription="Memory Peek Command">
+       <EntryList>
+         <Entry name="SymName" type="BASE_TYPES/PathName" shortDescription="Symbol name string" />
+       </EntryList>
+     </ContainerDataType>
+
+       <ContainerDataType name="PeekCmd_Payload" shortDescription="Memory Peek Command">
+        <EntryList>
+          <Entry name="DataSize" type="BASE_TYPES/uint8" shortDescription="Size of the data to be read" />
+          <Entry name="MemType" type="MemType_Payload" shortDescription="Memory type to peek data from" />
+          <Entry name="SrcSymAddress" type="SymAddr_Payload" shortDescription="Symbolic source peek address" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="PokeCmd_Payload" shortDescription="Memory Poke Command">
+       <EntryList>
+         <Entry name="DataSize" type="BASE_TYPES/uint8" shortDescription="Size of the data to be read" />
+         <Entry name="MemType" type="MemType_Payload" shortDescription="Memory type to peek data from" />
+         <Entry name="SrcSymAddress" type="CFE_ES/MemAddress" shortDescription="Symbolic source peek address" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ArrayDataType name="DataArraySize" dataTypeRef="BASE_TYPES/uint8">
+          <DimensionList>
+            <Dimension size="${MM/MAX_UNINTERRUPTIBLE_DATA}" />
+          </DimensionList>
+      </ArrayDataType>
+
+      <ContainerDataType name="LoadMemWID_Payload" shortDescription="Memory Load With Interrupts Disabled Command">
+       <EntryList>
+         <Entry name="NumOfBytes" type="BASE_TYPES/uint8" shortDescription="Number of bytes to be loaded" />
+         <Entry name="Crc" type="BASE_TYPES/uint32" shortDescription="Data check value" />
+         <Entry name="DestSymAddress" type="CFE_ES/MemAddress" shortDescription="Symbolic destination load address" />
+         <Entry name="DataArray" type="DataArraySize" shortDescription="Data to be loaded" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="LoadMemFromFile_Payload" shortDescription="Memory Load From File Command">
+       <EntryList>
+         <Entry name="FileName" type="BASE_TYPES/PathName" shortDescription="Name of memory load file" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="DumpMemToFile_Payload" shortDescription="Memory Dump To File Command">
+       <EntryList>
+         <Entry name="MemType" type="MemType_Payload" shortDescription="Memory dump type" />
+         <Entry name="NumOfBytes" type="BASE_TYPES/uint32" shortDescription="Number of bytes to be dumped" />
+         <Entry name="SrcSymAddress" type="CFE_ES/MemAddress" shortDescription="Symbol plus optional offset" />
+         <Entry name="FileName" type="BASE_TYPES/PathName" shortDescription="Name of memory dump file" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="DumpInEvent_Payload" shortDescription="Dump Memory In Event Message Command">
+       <EntryList>
+         <Entry name="MemType" type="MemType_Payload" shortDescription="Memory dump type" />
+         <Entry name="NumOfBytes" type="BASE_TYPES/uint32" shortDescription="Number of bytes to be dumped" />
+         <Entry name="SrcSymAddress" type="CFE_ES/MemAddress" shortDescription="Symbolic source address" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="FillMem_Payload" shortDescription="Memory Fill Command">
+       <EntryList>
+         <Entry name="MemType" type="MemType_Payload" shortDescription="Memory type" />
+         <Entry name="NumOfBytes" type="BASE_TYPES/uint32" shortDescription="Number of bytes to fill" />
+         <Entry name="FillPattern" type="BASE_TYPES/uint32" shortDescription="Fill pattern to use" />
+         <Entry name="DestSymAddress" type="CFE_ES/MemAddress" shortDescription="Symbol plus optional offset" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="LookUpSym_Payload" shortDescription="Symbol Table Lookup Command">
+       <EntryList>
+         <Entry name="SymName" type="BASE_TYPES/PathName" shortDescription="Symbol name string" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="SymTblToFile_Payload" shortDescription="Save Symbol Table To File Command">
+       <EntryList>
+         <Entry name="FileName" type="BASE_TYPES/PathName" shortDescription="Name of symbol dump file" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="EepromWriteEna_Payload" shortDescription="EEPROM Write Enable Command">
+       <EntryList>
+         <Entry name="Bank" type="BASE_TYPES/uint32" shortDescription="EEPROM bank number to write-enable" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="EepromWriteDis_Payload" shortDescription="EEPROM Write Disable Command">
+       <EntryList>
+         <Entry name="Bank" type="BASE_TYPES/uint32" shortDescription="EEPROM bank number to write-disable" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="CMD" baseType="CFE_HDR/CommandHeader">
+      </ContainerDataType>
+
+      <ContainerDataType name="HousekeepingCmd" baseType="CFE_HDR/CommandHeader" shortDescription="Send Housekeeping command" />
+      <ContainerDataType name="HkTlm_Payload" shortDescription="Housekeeping Packet Structure">
+        <EntryList>
+          <Entry name="CmdCounter" type="BASE_TYPES/uint8" shortDescription="Application command counter" />
+          <Entry name="ErrCounter" type="BASE_TYPES/uint8" shortDescription="Application command error counter" />
+          <Entry name="LastAction" type="BASE_TYPES/uint8" shortDescription="Last command action executed" />
+          <Entry name="MemType" type="MemType_Payload" shortDescription="Memory type for last command" />
+          <Entry name="Address" type="CFE_ES/MemAddress" shortDescription="Fully resolved address used for last command" />
+          <Entry name="DataValue" type="BASE_TYPES/uint8" shortDescription="Last command data (fill pattern or peek/poke value)" />
+          <Entry name="BytesProcessed" type="BASE_TYPES/uint8" shortDescription="Bytes processed for last command" />
+          <Entry name="FileName" type="BASE_TYPES/PathName" shortDescription="Name of the data file used for last command, where applicable" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="HousekeepingPkt" baseType="CFE_HDR/TelemetryHeader">
+        <EntryList>
+          <Entry type="HkTlm_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="NoopCmd" baseType="CMD">
+        <LongDescription>
+         \fmcmd Noop
+
+         \par Description
+              Implements the Noop command that insures the MM task is alive
+
+         \par Command Structure
+              #MM_NoArgsCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - The #MM_NOOP_INF_EID informational event message will be
+                generated when the command is received
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+
+         \par Criticality
+              None
+
+         \sa #MM_RESET_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="0" />
+        </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="ResetCtrsCmd" baseType="CMD">
+        <LongDescription>
+         \fmcmd Reset Counters
+
+         \par Description
+              Resets the MM housekeeping counters
+
+         \par Command Structure
+              #MM_NoArgsCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will be cleared
+              - #MM_HkPacket_t.ErrCounter will be cleared
+              - The #MM_RESET_INF_EID informational event message will be
+                generated when the command is executed
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+
+         \par Criticality
+              None
+
+         \sa #MM_NOOP_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="1" />
+        </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="PeekCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Memory Peek
+
+         \par Description
+              Reads 8,16, or 32 bits of data from any given input address
+
+         \par Command Structure
+              #MM_PeekCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_PEEK
+              - #MM_HkPacket_t.MemType will be set to the commanded memory type
+              - #MM_HkPacket_t.Address will be set to the fully resolved destination memory address
+              - #MM_HkPacket_t.BytesProcessed will be set to the byte size of the peek operation (1, 2, or 4)
+              - The #MM_PEEK_BYTE_INF_EID informational event message will
+                be generated with the peek data if the data size was 8 bits
+              - The #MM_PEEK_WORD_INF_EID informational event message will
+                be generated with the peek data if the data size was 16 bits
+              - The #MM_PEEK_DWORD_INF_EID informational event message will
+                be generated with the peek data if the data size was 32 bits
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - A symbol name was specified that can't be resolved
+              - The specified data size is invalid
+              - The specified memory type is invalid
+              - The address range fails validation check
+              - The address and data size are not properly aligned
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_SYMNAME_ERR_EID
+              - Error specific event message #MM_DATA_SIZE_BITS_ERR_EID
+              - Error specific event message #MM_MEMTYPE_ERR_EID
+              - Error specific event message #MM_OS_MEMVALIDATE_ERR_EID
+              - Error specific event message #MM_ALIGN16_ERR_EID
+              - Error specific event message #MM_ALIGN32_ERR_EID
+
+         \par Criticality
+              It is the responsibility of the user to verify the <i> DestSymAddress </i> and
+              <i> MemType </i> in the command.  It is possible to generate a machine check
+              exception when accessing I/O memory addresses/registers and other types of memory.
+              The user is cautioned to use extreme care.
+
+              Note: Valid memory ranges are defined within a hardcoded structure contained in the
+              PSP layer (CFE_PSP_MemoryTable) however, not every address within the defined ranges
+              may be valid.
+
+         \sa #MM_POKE_CC
+       </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="2" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="PeekCmd_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="PokeCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Memory Poke
+
+         \par Description
+              Writes 8, 16, or 32 bits of data to any memory address
+
+         \par Command Structure
+              #MM_PokeCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_POKE
+              - #MM_HkPacket_t.MemType will be set to the commanded memory type
+              - #MM_HkPacket_t.Address will be set to the fully resolved source memory address
+              - #MM_HkPacket_t.BytesProcessed will be set to the byte size of the poke operation (1, 2, or 4)
+              - The #MM_POKE_BYTE_INF_EID informational event message will
+                be generated if the data size was 8 bits
+              - The #MM_POKE_WORD_INF_EID informational event message will
+                be generated if the data size was 16 bits
+              - The #MM_POKE_DWORD_INF_EID informational event message will
+                be generated if the data size was 32 bits
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - A symbol name was specified that can't be resolved
+              - The specified data size is invalid
+              - The specified memory type is invalid
+              - The address range fails validation check
+              - The address and data size are not properly aligned
+              - An EEPROM write error occured
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_SYMNAME_ERR_EID
+              - Error specific event message #MM_DATA_SIZE_BITS_ERR_EID
+              - Error specific event message #MM_MEMTYPE_ERR_EID
+              - Error specific event message #MM_OS_MEMVALIDATE_ERR_EID
+              - Error specific event message #MM_ALIGN16_ERR_EID
+              - Error specific event message #MM_ALIGN32_ERR_EID
+              - Error specific event message #MM_OS_EEPROMWRITE8_ERR_EID
+              - Error specific event message #MM_OS_EEPROMWRITE16_ERR_EID
+              - Error specific event message #MM_OS_EEPROMWRITE32_ERR_EID
+
+         \par Criticality
+              It is the responsibility of the user to verify the <i>DestSymAddress</i>,
+              <i>MemType</i>, and <i>Data</i> in the command.  It is highly recommended
+              to verify the success or failure of the memory poke.  The poke may be verified
+              by issuing a subsequent peek command and evaluating the returned value.  It is
+              possible to destroy critical information with this command causing unknown
+              consequences. In addition, it is possible to generate a machine check exception
+              when accessing I/O memory addresses/registers and other types of memory. The user
+              is cautioned to use extreme care.
+
+              Note: Valid memory ranges are defined within a hardcoded structure contained in the
+              PSP layer (CFE_PSP_MemoryTable) however, not every address within the defined ranges
+              may be valid.
+
+         \sa #MM_PEEK_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="3" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="PokeCmd_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="LoadMemWIDCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Memory Load With Interrupts Disabled
+
+         \par Description
+              Reprogram processor memory with input data.  Loads up to
+              #MM_MAX_UNINTERRUPTIBLE_DATA data bytes into RAM with
+              interrupts disabled
+
+         \par Command Structure
+              #MM_LoadMemWIDCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_LOAD_WID
+              - #MM_HkPacket_t.Address will be set to the fully resolved destination memory address
+              - #MM_HkPacket_t.BytesProcessed will be set to the number of bytes loaded
+              - The #MM_LOAD_WID_INF_EID information event message will be
+                generated when the command is executed
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - A symbol name was specified that can't be resolved
+              - The computed CRC doesn't match the command message value
+              - The address range fails validation check
+              - Invalid data size specified in command message
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_SYMNAME_ERR_EID
+              - Error specific event message #MM_LOAD_WID_CRC_ERR_EID
+              - Error specific event message #MM_OS_MEMVALIDATE_ERR_EID
+              - Error specific event message #MM_DATA_SIZE_BYTES_ERR_EID
+
+         \par Criticality
+              It is the responsibility of the user to verify the <i>DestSymAddress</i>,
+              <i>NumOfBytes</i>, and <i>DataArray</i> contents in the command.  It is
+              highly recommended to verify the success or failure of the memory load.  The
+              load may be verified by dumping memory and evaluating the dump contents.  It
+              is possible to destroy critical information with this command causing unknown
+              consequences. In addition, it is possible to generate a machine check exception
+              when accessing I/O memory addresses/registers and other types of memory. The
+              user is cautioned to use extreme care.
+
+              Note: Valid memory ranges are defined within a hardcoded structure contained in the
+              PSP layer (CFE_PSP_MemoryTable) however, not every address within the defined ranges
+              may be valid.
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="4" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="LoadMemWID_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="LoadMemFromFileCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Memory Load From File
+
+         \par Description
+              Reprograms processor memory with the data contained within the given
+              input file
+
+         \par Command Structure
+              #MM_LoadMemFromFileCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_LOAD_FROM_FILE
+              - #MM_HkPacket_t.MemType will be set to the commanded memory type
+              - #MM_HkPacket_t.Address will be set to the fully resolved destination memory address
+              - #MM_HkPacket_t.BytesProcessed will be set to the number of bytes loaded
+              - #MM_HkPacket_t.FileName will be set to the load file name
+              - The #MM_LD_MEM_FILE_INF_EID informational event message will
+                be generated
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - Command specified filename is invalid
+              - #OS_OpenCreate call fails
+              - #OS_close call fails
+              - #OS_read doesn't read the expected number of bytes
+              - The #MM_ComputeCRCFromFile call fails
+              - The computed CRC doesn't match the load file value
+              - A symbol name was specified that can't be resolved
+              - #CFE_FS_ReadHeader call fails
+              - #OS_read call fails
+              - The address range fails validation check
+              - The specified data size is invalid
+              - The address and data size are not properly aligned
+              - The specified memory type is invalid
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_OS_OPEN_ERR_EID
+              - Error specific event message #MM_OS_CLOSE_ERR_EID
+              - Error specific event message #MM_OS_READ_EXP_ERR_EID
+              - Error specific event message #MM_COMPUTECRCFROMFILE_ERR_EID
+              - Error specific event message #MM_LOAD_FILE_CRC_ERR_EID
+              - Error specific event message #MM_SYMNAME_ERR_EID
+              - Error specific event message #MM_FILE_LOAD_PARAMS_ERR_EID
+              - Error specific event message #MM_CFE_FS_READHDR_ERR_EID
+              - Error specific event message #MM_OS_READ_ERR_EID
+              - Error specific event message #MM_OS_MEMVALIDATE_ERR_EID
+              - Error specific event message #MM_DATA_SIZE_BYTES_ERR_EID
+              - Error specific event message #MM_ALIGN32_ERR_EID
+              - Error specific event message #MM_ALIGN16_ERR_EID
+              - Error specific event message #MM_MEMTYPE_ERR_EID
+
+         \par Criticality
+              It is the responsibility of the user to verify the  contents of the load file
+              in the command.  It is highly recommended to verify the success or failure of
+              the memory load.  The load may be verified by dumping memory and evaluating the
+              dump contents.  It is possible to destroy critical information with this command
+              causing unknown consequences. In addition, it is possible to generate a machine
+              check exception when accessing I/O memory addresses/registers and other types of
+              memory. The user is cautioned to use extreme care.
+
+              Note: Valid memory ranges are defined within a hardcoded structure contained in the
+              PSP layer (CFE_PSP_MemoryTable) however, not every address within the defined ranges
+              may be valid.
+
+         \sa #MM_DUMP_MEM_TO_FILE_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="5" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="LoadMemFromFile_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="DumpMemToFileCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Memory Dump To File
+
+         \par Description
+              Dumps the input number of bytes from processor memory
+              to a file
+
+         \par Command Structure
+              #MM_DumpMemToFileCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_DUMP_TO_FILE
+              - #MM_HkPacket_t.MemType will be set to the commanded memory type
+              - #MM_HkPacket_t.Address will be set to the fully resolved source memory address
+              - #MM_HkPacket_t.BytesProcessed will be set to the number of bytes dumped
+              - #MM_HkPacket_t.FileName will be set to the dump file name
+              - The #MM_DMP_MEM_FILE_INF_EID informational event message will
+                be generated
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - Command specified filename is invalid
+              - A symbol name was specified that can't be resolved
+              - #OS_OpenCreate call fails
+              - #CFE_FS_WriteHeader call fails
+              - #OS_close call fails
+              - #OS_write doesn't write the expected number of bytes
+                or returns an error code
+              - The #MM_ComputeCRCFromFile call fails
+              - The address range fails validation check
+              - The specified data size is invalid
+              - The address and data size are not properly aligned
+              - The specified memory type is invalid
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_SYMNAME_ERR_EID
+              - Error specific event message #MM_OS_CREAT_ERR_EID
+              - Error specific event message #MM_CFE_FS_WRITEHDR_ERR_EID
+              - Error specific event message #MM_OS_CLOSE_ERR_EID
+              - Error specific event message #MM_OS_WRITE_EXP_ERR_EID
+              - Error specific event message #MM_COMPUTECRCFROMFILE_ERR_EID
+              - Error specific event message #MM_OS_MEMVALIDATE_ERR_EID
+              - Error specific event message #MM_DATA_SIZE_BYTES_ERR_EID
+              - Error specific event message #MM_ALIGN32_ERR_EID
+              - Error specific event message #MM_ALIGN16_ERR_EID
+              - Error specific event message #MM_MEMTYPE_ERR_EID
+
+         \par Criticality
+              It is the responsibility of the user to verify the <i>SrcSymAddress</i>,
+              <i>NumOfBytes</i>, and <i>MemType</i> in the command.  It is possible to
+              generate a machine check exception when accessing I/O memory addresses/registers
+              and other types of memory.  The user is cautioned to use extreme care.
+
+              Note: Valid memory ranges are defined within a hardcoded structure contained in the
+              PSP layer (CFE_PSP_MemoryTable) however, not every address within the defined ranges
+              may be valid.
+
+         \sa #MM_LOAD_MEM_FROM_FILE_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="6" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="DumpMemToFile_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="DumpInEventCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Dump In Event Message
+
+         \par Description
+              Dumps up to #MM_MAX_DUMP_INEVENT_BYTES of memory in an event message
+
+         \par Command Structure
+              #MM_DumpInEventCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_DUMP_INEVENT
+              - #MM_HkPacket_t.MemType will be set to the commanded memory type
+              - #MM_HkPacket_t.Address will be set to the fully resolved source memory address
+              - #MM_HkPacket_t.BytesProcessed will be set to the number of bytes dumped
+              - The #MM_DUMP_INEVENT_INF_EID informational event message will
+                be generated with the dump data
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - A symbol name was specified that can't be resolved
+              - The address range fails validation check
+              - The specified data size is invalid
+              - The address and data size are not properly aligned
+              - The specified memory type is invalid
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_SYMNAME_ERR_EID
+              - Error specific event message #MM_OS_MEMVALIDATE_ERR_EID
+              - Error specific event message #MM_DATA_SIZE_BYTES_ERR_EID
+              - Error specific event message #MM_ALIGN32_ERR_EID
+              - Error specific event message #MM_ALIGN16_ERR_EID
+              - Error specific event message #MM_MEMTYPE_ERR_EID
+
+         \par Criticality
+              It is the responsibility of the user to verify the <i>SrcSymAddress</i>,
+              <i>NumOfBytes</i>, and <i>MemType</i> in the command.  It is possible to
+              generate a machine check exception when accessing I/O memory addresses/registers
+              and other types of memory.  The user is cautioned to use extreme care.
+
+              Note: Valid memory ranges are defined within a hardcoded structure contained in the
+              PSP layer (CFE_PSP_MemoryTable) however, not every address within the defined ranges
+              may be valid.
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="7" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="DumpInEvent_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="FillMemCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Memory Fill
+
+         \par Description
+              Reprograms processor memory with the fill pattern contained
+              within the command message
+
+         \par Command Structure
+              #MM_FillMemCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_FILL
+              - #MM_HkPacket_t.MemType will be set to the commanded memory type
+              - #MM_HkPacket_t.Address will be set to the fully resolved destination memory address
+              - #MM_HkPacket_t.DataValue will be set to the fill pattern used
+              - #MM_HkPacket_t.BytesProcessed will be set to the number of bytes filled
+              - The #MM_FILL_INF_EID informational event message will
+                be generated when the command is executed
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - A symbol name was specified that can't be resolved
+              - The address range fails validation check
+              - The specified data size is invalid
+              - The address and data size are not properly aligned
+              - The specified memory type is invalid
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_SYMNAME_ERR_EID
+              - Error specific event message #MM_OS_MEMVALIDATE_ERR_EID
+              - Error specific event message #MM_DATA_SIZE_BYTES_ERR_EID
+              - Error specific event message #MM_ALIGN32_ERR_EID
+              - Error specific event message #MM_ALIGN16_ERR_EID
+              - Error specific event message #MM_MEMTYPE_ERR_EID
+
+         \par Criticality
+              It is the responsibility of the user to verify the <i>DestSymAddress</i>,
+              and <i>NumOfBytes</i> in the command.  It is highly recommended to verify
+              the success or failure of the memory fill.  The fill may be verified by
+              dumping memory and evaluating the dump contents.  It is possible to destroy
+              critical information with this command causing unknown consequences.  In
+              addition, it is possible to generate a machine check exception when accessing
+              I/O memory addresses/registers and other types of memory. The user
+              is cautioned to use extreme care.
+
+              Note: Valid memory ranges are defined within a hardcoded structure contained in the
+              PSP layer (CFE_PSP_MemoryTable) however, not every address within the defined ranges
+              may be valid.
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="8" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="FillMem_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="LookUpSymCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Symbol Table Lookup
+
+         \par Description
+              Queries the system symbol table and reports the resolved address
+              in telemetry and an informational event message
+
+         \par Command Structure
+              #MM_LookupSymCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_SYM_LOOKUP
+              - #MM_HkPacket_t.Address will be set to the fully resolved memory address
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - An empty string was specified as the symbol name
+              - A symbol name was specified that can't be resolved
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_SYMNAME_NUL_ERR_EID
+              - Error specific event message #MM_SYMNAME_ERR_EID
+
+         \par Criticality
+              None
+
+         \sa #MM_SYMTBL_TO_FILE_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="9" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="LookUpSym_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="SymTblToFileCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd Save Symbol Table To File
+
+         \par Description
+              Saves the system symbol table to a file that can be transfered
+              to the ground
+
+         \par Command Structure
+              #MM_SymTblToFileCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_SYMTBL_SAVE
+              - #MM_HkPacket_t.FileName will be set to the dump file name
+              - The #MM_SYMTBL_TO_FILE_INF_EID informational event message will
+                be generated when the command is executed
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - An empty string was specified as the dump filename
+              - The OSAL returns a status other than success to the command
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_SYMFILENAME_NUL_ERR_EID
+              - Error specific event message #MM_SYMTBL_TO_FILE_FAIL_ERR_EID
+
+         \par Note:
+              - Dump filenames #OS_MAX_PATH_LEN characters or longer are truncated
+
+         \par Criticality
+              None
+
+         \sa #MM_LOOKUP_SYM_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="10" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="SymTblToFile_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="EnableEepromWriteCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd EEPROM Write Enable
+
+         \par Description
+              Enables writing to a specified EEPROM bank
+
+         \par Command Structure
+              #MM_EepromWriteEnaCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_EEPROMWRITE_ENA
+              - The #MM_EEPROM_WRITE_ENA_INF_EID informational event message will
+                be generated when the command is executed
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - Non-success return status from PSP write enable
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_EEPROM_WRITE_ENA_ERR_EID
+
+         \par Criticality
+              Extreme caution is advised in the use of this command. It is intended to be
+              used only as a maintence tool for patching the default FSW image. This command
+              will leave the EEPROM bank in a very vulnerable state. Once a patch has been
+              completed the #MM_DISABLE_EEPROM_WRITE_CC command must be issued to protect the
+              EEPROM bank from being inadvertently written.
+
+         \sa #MM_DISABLE_EEPROM_WRITE_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="11" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="EepromWriteEna_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="DisableEepromWriteCmd" baseType="CMD">
+      <LongDescription>
+         \fmcmd EEPROM Write Disable
+
+         \par Description
+              Disables writing to a specified EEPROM bank
+
+         \par Command Structure
+              #MM_EepromWriteDisCmd_t
+
+         \par Command Verification
+              Successful execution of this command may be verified with
+              the following telemetry:
+              - #MM_HkPacket_t.CmdCounter will increment
+              - #MM_HkPacket_t.LastAction will be set to #MM_EEPROMWRITE_DIS
+              - The #MM_EEPROM_WRITE_DIS_INF_EID informational event message will
+                be generated when the command is executed
+
+         \par Error Conditions
+              This command may fail for the following reason(s):
+              - Command packet length not as expected
+              - Non-success return status from PSP write disable
+
+         \par Evidence of failure may be found in the following telemetry:
+              - #MM_HkPacket_t.ErrCounter will increment
+              - Error specific event message #MM_LEN_ERR_EID
+              - Error specific event message #MM_EEPROM_WRITE_DIS_ERR_EID
+
+         \par Criticality
+              None
+
+         \sa #MM_ENABLE_EEPROM_WRITE_CC
+        </LongDescription>
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="12" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="EepromWriteDis_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+  </DataTypeSet>
+
+    <ComponentSet>
+      <Component name="Application">
+        <RequiredInterfaceSet>
+          <Interface name="CMD" shortDescription="Msg ID for cmds to mm" type="CFE_SB/Telecommand">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelecommandDataType" type="CMD" />
+            </GenericTypeMapSet>
+          </Interface>
+          <Interface name="SEND_HK" shortDescription="Msg ID to request mm HK" type="CFE_SB/Telecommand">
+            <!-- This uses a bare spacepacket with no payload -->
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelecommandDataType" type="HousekeepingCmd" />
+            </GenericTypeMapSet>
+          </Interface>
+          <Interface name="HK_TLM" shortDescription="MM Housekeeping Telemetry" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="HousekeepingPkt" />
+            </GenericTypeMapSet>
+          </Interface>
+        </RequiredInterfaceSet>
+        <Implementation>
+          <VariableSet>
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId" initialValue="${CFE_MISSION/MM_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId" initialValue="${CFE_MISSION/MM_SEND_HK_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId" initialValue="${CFE_MISSION/MM_HK_TLM_TOPICID}" />
+          </VariableSet>
+          <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
+          <ParameterMapSet>
+            <ParameterMap interface="CMD" parameter="TopicId" variableRef="CmdTopicId" />
+            <ParameterMap interface="SEND_HK" parameter="TopicId" variableRef="SendHkTopicId" />
+            <ParameterMap interface="HK_TLM" parameter="TopicId" variableRef="HkTlmTopicId" />
+          </ParameterMapSet>
+        </Implementation>
+      </Component>
+    </ComponentSet>
+  </Package>
+</PackageFile>
